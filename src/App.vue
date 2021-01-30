@@ -58,8 +58,11 @@ function transformPastedHTML(text) {
   var temp = document.createElement('div');
   temp.innerHTML = text;
   text = temp.innerText;
-  text = text.replace(/(?:\r\n?|\n)/g,'<br>');
-  return text.trim();
+  text = text.replace(/\t/g,'');
+  let blocks = text.replace().split(/(?:\r\n?|\n)/);
+  blocks = blocks.map(v => v.trim());
+  text = blocks.filter(v => v.length > 0).join('<br>');
+  return text;
 }
 
 function clipboardTextParser(text, context) {
