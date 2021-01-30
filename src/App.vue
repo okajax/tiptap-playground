@@ -50,13 +50,28 @@
 
 <script>
 import { Editor, EditorContent, EditorMenuBubble, Extension } from "tiptap";
-import {
-  HardBreak,
-  Bold,
-  Code,
-  Italic,
-  History,
-} from "tiptap-extensions";
+import { Slice, Fragment, Node } from "prosemirror-model";
+import { HardBreak, Bold, Code, Italic, History } from "tiptap-extensions";
+
+function clipboardTextParser(text, context) {
+  // paste content as plain text
+  text = text.replace(/<("[^"]*"|'[^']*'|[^'">])*>/g,'');
+  const blocks = text.replace().split(/(?:\r\n?|\n)/);
+  const nodes = [];
+
+  blocks.forEach((line, i, arr) => {
+    const scheme = context.doc.type.schema;
+    if (line.length > 0) {
+      nodes.push(Node.fromJSON(scheme, { type: "text", text: line }));
+    }
+    if ((i + 1) !== arr.length) {
+      nodes.push(Node.fromJSON(scheme, { type: "hard_break" }));
+    }
+  });
+
+  const fragment = Fragment.fromArray(nodes);
+  return Slice.maxOpen(fragment);
+}
 
 const CustomeEnter = class extends Extension {
   keys() {
@@ -96,6 +111,9 @@ export default {
         content: `
           Hey, try to select some text here. There will popup a menu for selecting some inline styles. <em>Remember:</em> you have full control about content and styling of this menu.
         `,
+        editorProps: {
+          clipboardTextParser,
+        },
       }),
     };
   },
@@ -118,6 +136,10 @@ export default {
 
     * {
       caret-color: currentColor;
+    }
+
+    p {
+      margin: 0;
     }
 
     pre {
