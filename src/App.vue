@@ -53,9 +53,17 @@ import { Editor, EditorContent, EditorMenuBubble, Extension } from "tiptap";
 import { Slice, Fragment, Node } from "prosemirror-model";
 import { HardBreak, Bold, Code, Italic, History } from "tiptap-extensions";
 
+function transformPastedHTML(text) {
+  // paste content as plain text
+  var temp = document.createElement('div');
+  temp.innerHTML = text;
+  text = temp.innerText;
+  text = text.replace(/(?:\r\n?|\n)/g,'<br>');
+  return text.trim();
+}
+
 function clipboardTextParser(text, context) {
   // paste content as plain text
-  text = text.replace(/<("[^"]*"|'[^']*'|[^'">])*>/g,'');
   const blocks = text.replace().split(/(?:\r\n?|\n)/);
   const nodes = [];
 
@@ -112,7 +120,7 @@ export default {
           Hey, try to select some text here. There will popup a menu for selecting some inline styles. <em>Remember:</em> you have full control about content and styling of this menu.
         `,
         editorProps: {
-          clipboardTextParser,
+          clipboardTextParser, transformPastedHTML
         },
       }),
     };
